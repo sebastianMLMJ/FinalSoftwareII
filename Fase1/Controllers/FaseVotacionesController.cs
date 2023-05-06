@@ -42,9 +42,23 @@ namespace Fase1.Controllers
             return Ok("La fase de votaciones esta abierta");
         }
 
+        // DELETE: api/FaseCrearCandidatoes
+        [HttpDelete]
+        public async Task<ActionResult> CerrarFaseVotaciones()
+        {
+            var fase = await _context.FaseVotaciones.FirstOrDefaultAsync();
 
-
-
-
+            if (fase == null || fase.Activa == 0)
+            {
+                return Ok("La fase de crear votos ya esta cerrada");
+            }
+            else
+            {
+                fase.Activa = 0;
+                _context.Update(fase);
+                await _context.SaveChangesAsync();
+                return Ok("La fase de votaciones se ha cerrado");
+            }
+        }
     }
 }

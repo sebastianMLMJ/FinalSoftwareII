@@ -9,5 +9,13 @@ public partial class Votacione
 
     public int? IdCandidato { get; set; }
 
+    public int? IdVotante { get; set; }
+
+    public DateTime? FechaHora { get; set; }
+
+    public string? Ip { get; set; }
+
     public virtual Candidato? IdCandidatoNavigation { get; set; }
+
+    public virtual Votante? IdVotanteNavigation { get; set; }
 }

@@ -21,7 +21,11 @@ public partial class VotacionesContext : DbContext
 
     public virtual DbSet<FaseVotacione> FaseVotaciones { get; set; }
 
+    public virtual DbSet<Fraude> Fraudes { get; set; }
+
     public virtual DbSet<Votacione> Votaciones { get; set; }
+
+    public virtual DbSet<Votante> Votantes { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
@@ -70,20 +74,55 @@ public partial class VotacionesContext : DbContext
                 .HasColumnName("activa");
         });
 
+        modelBuilder.Entity<Fraude>(entity =>
+        {
+            entity.HasKey(e => e.IdFraude).HasName("PRIMARY");
+
+            entity.ToTable("fraude");
+
+            entity.Property(e => e.IdFraude).HasColumnName("id_fraude");
+            entity.Property(e => e.Fraudes).HasColumnName("fraudes");
+        });
+
         modelBuilder.Entity<Votacione>(entity =>
         {
             entity.HasKey(e => e.IdVoto).HasName("PRIMARY");
 
             entity.ToTable("votaciones");
 
-            entity.HasIndex(e => e.IdCandidato, "fk_voto_usuario");
+            entity.HasIndex(e => e.IdCandidato, "fk_voto_candidato");
+
+            entity.HasIndex(e => e.IdVotante, "fk_voto_votante");
 
             entity.Property(e => e.IdVoto).HasColumnName("id_voto");
+            entity.Property(e => e.FechaHora)
+                .HasColumnType("datetime")
+                .HasColumnName("fecha_hora");
             entity.Property(e => e.IdCandidato).HasColumnName("id_candidato");
+            entity.Property(e => e.IdVotante).HasColumnName("id_votante");
+            entity.Property(e => e.Ip)
+                .HasMaxLength(50)
+                .HasColumnName("ip");
 
             entity.HasOne(d => d.IdCandidatoNavigation).WithMany(p => p.Votaciones)
                 .HasForeignKey(d => d.IdCandidato)
-                .HasConstraintName("fk_voto_usuario");
+                .HasConstraintName("fk_voto_candidato");
+
+            entity.HasOne(d => d.IdVotanteNavigation).WithMany(p => p.Votaciones)
+                .HasForeignKey(d => d.IdVotante)
+                .HasConstraintName("fk_voto_votante");
+        });
+
+        modelBuilder.Entity<Votante>(entity =>
+        {
+            entity.HasKey(e => e.IdVotante).HasName("PRIMARY");
+
+            entity.ToTable("votante");
+
+            entity.Property(e => e.IdVotante).HasColumnName("id_votante");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(50)
+                .HasColumnName("nombre");
         });
 
         OnModelCreatingPartial(modelBuilder);
