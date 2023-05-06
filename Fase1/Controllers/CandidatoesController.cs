@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Akka.Actor;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Modelos.Models;
+using Fase1.Actores;
 
 namespace Fase1.Controllers
 {
@@ -35,19 +37,15 @@ namespace Fase1.Controllers
         }
         // GET: Fases
         [HttpGet]
-        [ApiExplorerSettings(IgnoreApi =true)]
+        //[ApiExplorerSettings(IgnoreApi =true)]
         public async Task<bool> ComprobarFaseAbierta()
         {
-            var fase = await _context.FaseCrearCandidatos.FirstOrDefaultAsync();
+            var sistema = ActorSystem.Create("primerSistema");
+            var actor = sistema.ActorOf<ActorFase>("actor");
+            var respuesta = await actor.Ask<bool>(true);
+            sistema.Stop(actor);
+            return respuesta;
             
-            if (fase == null || fase.Activa==0)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
         }
     }
 }

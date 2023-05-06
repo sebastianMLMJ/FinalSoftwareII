@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Akka.Actor;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Modelos.Models;
+using Fase2.Actores;
 
 namespace Fase2.Controllers
 {
@@ -28,7 +30,7 @@ namespace Fase2.Controllers
 
             if (votacionesabiertas == false)
             {
-                return Ok("Las votaciones no se encuentran abiertas");
+                return BadRequest("Las votaciones no se encuentran abiertas");
 
             }
             else
@@ -36,6 +38,7 @@ namespace Fase2.Controllers
                 var cantvotos = await _context.Votaciones.Where(p => p.IdVotante == votacione.IdVotante).CountAsync();
                 if (cantvotos ==0)
                 {
+                    votacione.FechaHora = DateTime.Now;
                     _context.Votaciones.Add(votacione);
                     await _context.SaveChangesAsync();
                     return Ok("Su voto ha sido agregado");
@@ -50,19 +53,14 @@ namespace Fase2.Controllers
         }
 
         [HttpGet]
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         public async Task<bool> ComprobarVotacionesAbiertas()
         {
-            var fase = await _context.FaseVotaciones.FirstOrDefaultAsync();
-
-            if (fase == null || fase.Activa == 0)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+            var sistema = ActorSystem.Create("SegundoSistema");
+            var actordos = sistema.ActorOf<ActorVotaciones>("actordos");
+            var respuesta = await actordos.Ask<bool>(true);
+            sistema.Stop(actordos);
+            return respuesta;
         }
 
         [HttpPut]
